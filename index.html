@@ -1066,6 +1066,42 @@
 
     <div id="nativePrintArea"></div>
 
+    <!-- ======================= PWA script (در ابتدا قرار گیرد) ======================= -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js')
+                    .then(function(reg) {
+                        console.log('✅ سرویس‌ورکر ثبت شد');
+                    })
+                    .catch(function(err) {
+                        console.error('❌ خطای SW:', err);
+                    });
+            });
+        }
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', function(e) {
+            e.preventDefault();
+            deferredPrompt = e;
+            var installBtn = document.getElementById('installBtn');
+            if (installBtn) installBtn.style.display = 'inline-flex';
+        });
+
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(function(result) {
+                    if (result.outcome === 'accepted') console.log('نصب شد');
+                    deferredPrompt = null;
+                    var installBtn = document.getElementById('installBtn');
+                    if (installBtn) installBtn.style.display = 'none';
+                });
+            }
+        }
+    </script>
+
+    <!-- ======================= اسکریپت اصلی برنامه ======================= -->
     <script>
         let idCounter = parseInt(localStorage.getItem('idCounter')) || 0;
         let mainRecords = JSON.parse(localStorage.getItem('mainRecords')) || [];
@@ -2110,35 +2146,6 @@
         updateTransSortArrows();
         renderAll();
         if (localStorage.getItem('theme') === 'dark') { toggleTheme(); }
-
-        // ======================= PWA =======================
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('✅ سرویس‌ورکر ثبت شد'))
-                    .catch(err => console.error('❌ خطای ثبت SW:', err));
-            });
-        }
-
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            const installBtn = document.getElementById('installBtn');
-            if (installBtn) installBtn.style.display = 'inline-flex';
-        });
-
-        function installApp() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then(result => {
-                    if (result.outcome === 'accepted') console.log('نصب با موفقیت انجام شد');
-                    deferredPrompt = null;
-                    const installBtn = document.getElementById('installBtn');
-                    if (installBtn) installBtn.style.display = 'none';
-                });
-            }
-        }
     </script>
 </body>
 </html>
